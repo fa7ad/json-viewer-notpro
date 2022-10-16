@@ -2,6 +2,7 @@
 
 const path = require('path')
 const fs = require('fs-extra')
+const prettier = require('prettier')
 
 const BUILD_DIR = path.resolve(__dirname, '../build')
 const STATIC_DIR = path.join(BUILD_DIR, 'static')
@@ -43,6 +44,7 @@ async function main() {
 
   await fs
     .readFile(INDEX_HTML, 'utf8')
+    .then(html => prettier.format(html, { parser: 'html' }))
     .then(text =>
       text
         .replace(/main\.(?:.)+\.(js|css)"/g, (_, $1) => `main.${$1}"`)
