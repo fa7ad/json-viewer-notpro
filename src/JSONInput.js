@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { initPlugin } from './utils/json-viewer/jquery.json-viewer.js';
+// import { initPlugin } from './utils/json-viewer/jquery.json-viewer.js';
+// eslint-disable-next-line
+require('./utils/json-viewer/jquery.json-viewer.js');
 
 class JSONInput extends Component {
     constructor(props) {
@@ -17,6 +19,7 @@ class JSONInput extends Component {
             },
             json: JSON.stringify(props.json, null, 4),
         };
+        this.rawJSON = React.createRef();
     }
 
     parseJSON(initialJSON = null) {
@@ -24,7 +27,7 @@ class JSONInput extends Component {
         let rawJSON =
             initialJSON && typeof initialJSON === 'string'
                 ? initialJSON
-                : this.refs.rawJSON.value.trim();
+                : this.rawJSON.current.value.trim();
         if (!initialJSON) {
             if (!rawJSON) {
                 this.setState({
@@ -128,7 +131,7 @@ class JSONInput extends Component {
                 )}
                 <div className="form-input">
                     <textarea
-                        ref="rawJSON"
+                        ref={this.rawJSON}
                         defaultValue={this.state.json}
                         className="json-input"
                     ></textarea>

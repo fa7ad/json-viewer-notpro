@@ -1,85 +1,93 @@
-chrome.browserAction.onClicked.addListener(function (tab) {
-    chrome.tabs.create(
-        { url: chrome.extension.getURL('index.html') },
-        function (tab) {},
-    );
-});
+browser.browserAction.onClicked.addListener(function () {
+  browser.tabs.create(
+    { url: browser.extension.getURL('index.html') },
+    function () {}
+  )
+})
 
-const RB_DOWNLOAD_JSON_MENU = 'RB_DOWNLOAD_JSON_MENU';
-const RB_OPEN_SETTINGS = 'RB_OPEN_SETTINGS';
+function makeHtmlPage(json) {
+  return `
+    <!doctype html>
+    <head>
+      <meta charset="utf-8">
+      <title>Loading...</title>
+      <link rel="stylesheet" href="${browser.runtime.getURL('/css/main.css')}" />
+    </head>
+    <html>
+    <body data-type='application/json'>
+      ${json}
+    </body>
+    </html>
+  `
+}
 
-const createContextMenu = () => {
-    let alreadyInvoked = false;
-    return () => {
-        if (alreadyInvoked) return;
+function isRedirect(status) {
+  return status >= 300 && status < 400
+}
 
-        chrome.contextMenus.create({
-            id: RB_DOWNLOAD_JSON_MENU,
-            title: 'Download JSON',
-            contexts: ['all'],
-            type: 'normal',
-            documentUrlPatterns: ['*://*/*'],
-            onclick: function (info, tab) {
-                if (info.menuItemId !== RB_DOWNLOAD_JSON_MENU) {
-                    return;
-                }
-                chrome.tabs.sendMessage(tab.id, { action: 'rb_download_json' });
-            },
-        });
+function transformResponseToJSON(details) {
+  const filter = browser.webRequest.filterResponseData(details.requestId)
 
-        chrome.contextMenus.create({
-            id: RB_OPEN_SETTINGS,
-            title: 'Settings',
-            contexts: ['all'],
-            type: 'normal',
-            documentUrlPatterns: ['*://*/*'],
-            onclick: function (info, tab) {
-                if (info.menuItemId !== RB_OPEN_SETTINGS) {
-                    return;
-                }
-                chrome.tabs.create({
-                    url: chrome.extension.getURL('options.html'),
-                });
-            },
-        });
-        alreadyInvoked = true;
-    };
-};
+  const dec = new TextDecoder('utf-8')
+  const enc = new TextEncoder()
+  let content = ''
 
-const createContextMenuOnce = createContextMenu();
+  filter.ondata = event => {
+    content = content + dec.decode(event.data)
+  }
 
-const dbName = 'rb-awesome-json-viewer-options';
-const sendOptions = () => {
-    let options = JSON.parse(localStorage.getItem(dbName));
-    if (!options) {
-        options = {};
-        options.theme = 'default';
-        options.css = '';
-        options.collapsed = 0;
+  // _event
+  filter.onstop = () => {
+    let outputDoc = ''
+
+    try {
+      outputDoc = makeHtmlPage(content)
+    } catch (e) {
+      outputDoc = makeHtmlPage(JSON.stringify({ error: e, message: e.message }))
     }
-    (options.optionPageURL = chrome.extension.getURL('options.html')),
-        (options.optionIconURL = chrome.extension.getURL(
-            '/images/icons/gear.png',
-        )),
-        chrome.tabs.query({}, (tabs) => {
-            tabs.forEach((tab) => {
-                const data = {
-                    action: 'options_received',
-                    options: options,
-                };
-                chrome.tabs.sendMessage(tab.id, data);
-            });
-        });
-};
 
-chrome.runtime.onMessage.addListener((message) => {
-    switch (message.action) {
-        case 'give_me_options':
-            sendOptions();
-            createContextMenuOnce();
-            break;
+    filter.write(enc.encode(outputDoc))
 
-        default:
-            break;
+    filter.disconnect()
+  }
+}
+
+function detectJSON(event) {
+  if (!event.responseHeaders || isRedirect(event.statusCode)) {
+    return
+  }
+
+  let isJson = false
+
+  const cti = event.responseHeaders.findIndex(
+    header => header.name.toLowerCase() === 'content-type'
+  )
+
+  const header = event.responseHeaders?.[cti] || {}
+
+  if (header?.value.includes('json')) {
+    if (
+      typeof browser !== 'undefined' &&
+      'filterResponseData' in browser.webRequest
+    ) {
+      header.value = 'text/html'
+      isJson = true
     }
-});
+  }
+
+  if (/\.json(?:[?#].*?)?$/i.test(event.url)) {
+    isJson = true
+  }
+
+  if (isJson) {
+    transformResponseToJSON(event)
+  }
+
+  return { responseHeaders: event.responseHeaders }
+}
+
+browser.webRequest.onHeadersReceived.addListener(
+  detectJSON,
+  { urls: ['<all_urls>'], types: ['main_frame'] },
+  ['blocking', 'responseHeaders']
+)

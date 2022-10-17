@@ -101,18 +101,6 @@ body {
   background-color: #7c4bde;
 }
 
-.action-area > ul.menus > li > a.option-menu {
-  padding: 1px !important;
-  height: 100%;
-  vertical-align: middle;
-  border: 1px solid #111;
-}
-
-a.option-menu img {
-  width: 100%;
-  max-width: 34px;
-}
-
 ul.json-dict li {
   width: auto;
   display: block;

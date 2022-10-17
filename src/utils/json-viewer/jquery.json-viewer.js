@@ -11,7 +11,7 @@ function isCollapsable(arg) {
  * @return boolean
  */
 function isUrl(string) {
-    var regexp = /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+    var regexp = /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
     return regexp.test(string);
 }
 
@@ -66,7 +66,7 @@ function json2html(json, options) {
         if (key_count > 0) {
             html += '{<ul class="json-dict ">';
             for (var key in json) {
-                if (json.hasOwnProperty(key)) {
+                if (typeof json[key] !== 'undefined') {
                     html += '<li>';
                     var keyRepr = options.withQuotes
                         ? '<span class="property">"' + key + '"</span>'
@@ -112,7 +112,7 @@ export const initPlugin = function (node, jQuery, json, option) {
 
             // Bind click on toggle buttons
             $(this).off('click');
-            $(this).on('click', 'span.property', function (e) {
+            $(this).on('click', 'span.property', function () {
                 $('li').removeClass('copyable');
                 $(this).parents('li').first().addClass('copyable');
             });

@@ -6,20 +6,25 @@ Originally created for Chrome by @rbrahul, this is my fork of the [original exte
 
 ## Features
 
-Same as the original
+Same as the original except for the following:
 
-    * ✅ Beautify JSON response from API
-    * ✅ Visual representation of JSON
-    * ✅ Depth traversing of JSON property using breadcrumbs
-    * ✅ Write custom JSON in Input area
-    * ✅ Import local JSON file
-    * ✅ Download JSON file using Context Menu
-    * ✅ URL filters
-    * ✅ Change Themes
-    * ✅ Custom CSS
-    * ✅ Cool User Interface.
-    * ✅ Copy property and value
-    * ✅ Access JSON in your console using only `json` keyword
+* ⛔️ No support for options, or options page
+* ⛔️ No context menu
+
+Original features:
+
+> * ✅ Beautify JSON response from API
+> * ✅ Visual representation of JSON
+> * ✅ Depth traversing of JSON property using breadcrumbs
+> * ✅ Write custom JSON in Input area
+> * ✅ Import local JSON file
+> * ✅ Download JSON file using Context Menu
+> * ✅ URL filters
+> * ✅ Change Themes
+> * ✅ Custom CSS
+> * ✅ Cool User Interface.
+> * ✅ Copy property and value
+> * ✅ Access JSON in your console using only `json` keyword
 
 ## Donate to @rbrahul, if you like the extension
 
@@ -30,7 +35,7 @@ Same as the original
 ### 2.0.0 \[WIP] - Work in Progress
 
 - ✅ Rewrite some scripts to native node instead of using system calls
-- 🚧 Add support for Firefox
+- ✅ Add support for Firefox
 - 🕛 Port over the build system to use Vite
 
 > ### Version 1.0.0 on 04-10-2020
